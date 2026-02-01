@@ -8,7 +8,7 @@ export const identifyCookieButton = async (htmlSnippet: string) => {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `Identify the 'Accept All' or 'Allow Cookies' button from this HTML snippet. 
-      Return only the text content or CSS selector that uniquely identifies it.
+      Return only the EXACT text content as it appears in the HTML. Do not paraphrase or normalize.
       HTML: ${htmlSnippet}`,
       config: {
         responseMimeType: "application/json",
