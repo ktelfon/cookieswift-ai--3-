@@ -1,12 +1,20 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Remove global instance
+// const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-export const identifyCookieButton = async (htmlSnippet: string) => {
+export const identifyCookieButton = async (htmlSnippet: string, apiKey: string) => {
+  if (!apiKey) {
+    console.error("Gemini API Key is missing.");
+    throw new Error("API_KEY_MISSING");
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
+
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-2.0-flash', // Upgraded model recommendation
       contents: `Identify the 'Accept All' or 'Allow Cookies' button from this HTML snippet. 
       Return only the EXACT text content as it appears in the HTML. Do not paraphrase or normalize.
       HTML: ${htmlSnippet}`,

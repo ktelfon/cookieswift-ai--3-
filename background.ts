@@ -1,4 +1,3 @@
-
 // Declare chrome for TypeScript to recognize the extension API
 declare const chrome: any;
 
@@ -13,13 +12,21 @@ chrome.runtime.onMessage.addListener((request: any, sender: any, sendResponse: a
 
 async function handleBannerDetection(html: string, sendResponse: (res: any) => void) {
   try {
-    const result = await identifyCookieButton(html);
-    
-    // Log the successful bypass to storage for the dashboard stats
-    const stats = await chrome.storage.local.get(['totalBypassed', 'timeSaved']);
+    const storage = await chrome.storage.local.get(['geminiApiKey', 'totalBypassed', 'timeSaved']);
+    const apiKey = storage.geminiApiKey;
+
+    if (!apiKey) {
+      console.warn('CookieSwift: No API key found. User needs to configure extension.');
+      sendResponse({ buttonText: 'No button found', error: 'API_KEY_MISSING' }); // Return specific error to frontend if needed
+      return;
+    }
+
+    const result = await identifyCookieButton(html, apiKey);
+    // const result = { buttonText: 'DEBUG_DISABLED' }; // Mock result
+
     await chrome.storage.local.set({
-      totalBypassed: (stats.totalBypassed || 0) + 1,
-      timeSaved: (stats.timeSaved || 0) + 5
+      totalBypassed: (storage.totalBypassed || 0) + 1,
+      timeSaved: (storage.timeSaved || 0) + 5
     });
 
     sendResponse(result);

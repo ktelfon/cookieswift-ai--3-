@@ -35,7 +35,7 @@ declare const chrome: any;
 
         // 1. FAST PATH: Check for known rigid selectors first (OneTrust, etc.)
         // This avoids API calls for common banners
-        const fastClickSuccess = attemptFastClick();
+        const fastClickSuccess = await attemptFastActions();
         if (fastClickSuccess) {
           console.log('CookieSwift: Fast-path click successful. Skipping AI analysis.');
           stopScanning(); // SUCCESS!
@@ -74,8 +74,8 @@ declare const chrome: any;
     }
   }
 
-  function attemptFastClick(): boolean {
-    // Known "Accept All" button selectors for major CMPs
+  async function attemptFastActions(): Promise<boolean> {
+    // 1. Known Selectors
     const fastSelectors = [
       '#onetrust-accept-btn-handler', // OneTrust
       '#uc-btn-accept-banner', // Usercentrics
@@ -85,13 +85,33 @@ declare const chrome: any;
 
     for (const selector of fastSelectors) {
       const btn = document.querySelector(selector) as HTMLElement;
-      if (btn && btn.offsetParent !== null) { // Check visibility
+      if (btn && btn.offsetParent !== null) {
         console.log(`CookieSwift: Fast-path found button via "${selector}". Clicking...`);
         btn.click();
-        showNotification(true); // pass true for "Fast"
+        showNotification(true);
         return true;
       }
     }
+
+    // 2. Generic Text Search
+    const targetTexts = ['Accept All', 'Allow All', 'Accept Cookies', 'I Agree', 'Accept', 'Alles akzeptieren'];
+    const candidates = document.querySelectorAll('button, a, [role="button"], input[type="button"], input[type="submit"], .btn, div[class*="button"]');
+
+    for (const el of Array.from(candidates) as HTMLElement[]) {
+      if (el.offsetParent === null) continue; // Skip invisible elements
+      const text = el.innerText.trim().toLowerCase();
+      if (targetTexts.some(t => text === t.toLowerCase())) {
+        console.log(`CookieSwift: Found text-match button: "${el.innerText}". Clicking...`);
+        el.click();
+        await new Promise(resolve => setTimeout(resolve, 500)); // Wait for UI update
+        if (el.offsetParent === null || !document.body.contains(el)) {
+          console.log('CookieSwift: Element disappeared. Success.');
+          showNotification(true);
+          return true;
+        }
+      }
+    }
+
     return false;
   }
 
