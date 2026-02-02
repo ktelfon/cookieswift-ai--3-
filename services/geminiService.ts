@@ -1,9 +1,6 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Remove global instance
-// const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 export const identifyCookieButton = async (htmlSnippet: string, apiKey: string) => {
   if (!apiKey) {
     console.error("Gemini API Key is missing.");
