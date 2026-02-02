@@ -154,7 +154,7 @@ declare const chrome: any;
     console.log(`CookieSwift: Found ${elements.length} interactive elements in banner.`);
 
     const target = Array.from(elements).find(el => {
-      const text = (el as HTMLElement).innerText.toLowerCase();
+      const text = (el.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
       console.log(`CookieSwift: Checking element text: "${text}"`); // Debug log
       const match = text.includes(buttonText.toLowerCase());
       if (match) {
