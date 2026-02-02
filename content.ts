@@ -98,9 +98,10 @@ declare const chrome: any;
     const candidates = document.querySelectorAll('button, a, [role="button"], input[type="button"], input[type="submit"], .btn, div[class*="button"]');
 
     for (const el of Array.from(candidates) as HTMLElement[]) {
-      if (el.offsetParent === null) continue; // Skip invisible elements
-      const text = el.innerText.trim().toLowerCase();
+      // Optimize: Check textContent first to avoid layout thrashing
+      const text = (el.textContent || '').trim().toLowerCase();
       if (targetTexts.some(t => text === t.toLowerCase())) {
+        if (el.offsetParent === null) continue; // Skip invisible elements
         console.log(`CookieSwift: Found text-match button: "${el.innerText}". Clicking...`);
         el.click();
         await new Promise(resolve => setTimeout(resolve, 500)); // Wait for UI update
