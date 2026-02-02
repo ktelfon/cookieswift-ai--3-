@@ -97,7 +97,8 @@ declare const chrome: any;
     const targetTexts = ['Accept All', 'Allow All', 'Accept Cookies', 'I Agree', 'Accept', 'Alles akzeptieren'];
     const candidates = document.querySelectorAll('button, a, [role="button"], input[type="button"], input[type="submit"], .btn, div[class*="button"]');
 
-    for (const el of Array.from(candidates) as HTMLElement[]) {
+    for (const node of candidates) {
+      const el = node as HTMLElement;
       if (el.offsetParent === null) continue; // Skip invisible elements
       const text = el.innerText.trim().toLowerCase();
       if (targetTexts.some(t => text === t.toLowerCase())) {
