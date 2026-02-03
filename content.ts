@@ -156,10 +156,18 @@ declare const chrome: any;
     const elements = container.querySelectorAll('button, a, [role="button"]');
     console.log(`CookieSwift: Found ${elements.length} interactive elements in banner.`);
 
+    const lowerButtonText = buttonText.toLowerCase();
+
     const target = Array.from(elements).find(el => {
-      const text = (el as HTMLElement).innerText.toLowerCase();
+      const element = el as HTMLElement;
+      // Optimization: Check textContent first to avoid expensive layout thrashing from innerText
+      if (!element.textContent?.toLowerCase().includes(lowerButtonText)) {
+        return false;
+      }
+
+      const text = element.innerText.toLowerCase();
       console.log(`CookieSwift: Checking element text: "${text}"`); // Debug log
-      const match = text.includes(buttonText.toLowerCase());
+      const match = text.includes(lowerButtonText);
       if (match) {
         console.log(`CookieSwift: matched element:`, el);
       }
