@@ -95,21 +95,25 @@ declare const chrome: any;
 
     // 2. Generic Text Search
     const targetTexts = ['Accept All', 'Allow All', 'Accept Cookies', 'I Agree', 'Accept', 'Alles akzeptieren'];
+    const targetSet = new Set(targetTexts.map(t => t.toLowerCase()));
     const candidates = document.querySelectorAll('button, a, [role="button"], input[type="button"], input[type="submit"], .btn, div[class*="button"]');
 
     for (const node of candidates) {
       const el = node as HTMLElement;
 
-      // Optimization: Check textContent first to avoid unnecessary reflows from offsetParent
-      const rawText = (el.textContent || '').toLowerCase();
-      if (!targetTexts.some(t => rawText.includes(t.toLowerCase()))) {
-        continue;
-      }
+      // Optimization: Check textContent first to avoid expensive layout checks (offsetParent, innerText)
+      // This filters out the vast majority of non-matching buttons without triggering reflows.
+      const textContent = el.textContent || '';
+      // Normalize whitespace to match innerText behavior (collapse multiple spaces/newlines to single space)
+      const normalizedText = textContent.replace(/\s+/g, ' ').toLowerCase();
+      const mightMatch = targetTexts.some(t => normalizedText.includes(t.toLowerCase()));
+
+      if (!mightMatch) continue;
 
       if (el.offsetParent === null) continue; // Skip invisible elements
       const text = el.innerText.trim().toLowerCase();
 
-      if (targetTexts.some(t => text === t.toLowerCase())) {
+      if (targetSet.has(text)) {
         if (el.offsetParent === null) continue; // Skip invisible elements
         console.log(`CookieSwift: Found text-match button: "${el.innerText}". Clicking...`);
         el.click();
@@ -163,10 +167,18 @@ declare const chrome: any;
     const elements = container.querySelectorAll('button, a, [role="button"]');
     console.log(`CookieSwift: Found ${elements.length} interactive elements in banner.`);
 
+    const lowerButtonText = buttonText.toLowerCase();
+
     const target = Array.from(elements).find(el => {
-      const text = (el as HTMLElement).innerText.toLowerCase();
+      const element = el as HTMLElement;
+      // Optimization: Check textContent first to avoid expensive layout thrashing from innerText
+      if (!element.textContent?.toLowerCase().includes(lowerButtonText)) {
+        return false;
+      }
+
+      const text = element.innerText.toLowerCase();
       console.log(`CookieSwift: Checking element text: "${text}"`); // Debug log
-      const match = text.includes(buttonText.toLowerCase());
+      const match = text.includes(lowerButtonText);
       if (match) {
         console.log(`CookieSwift: matched element:`, el);
       }
