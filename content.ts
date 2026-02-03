@@ -100,6 +100,16 @@ declare const chrome: any;
 
     for (const node of candidates) {
       const el = node as HTMLElement;
+
+      // Optimization: Check textContent first to avoid expensive layout checks (offsetParent, innerText)
+      // This filters out the vast majority of non-matching buttons without triggering reflows.
+      const textContent = el.textContent || '';
+      // Normalize whitespace to match innerText behavior (collapse multiple spaces/newlines to single space)
+      const normalizedText = textContent.replace(/\s+/g, ' ').toLowerCase();
+      const mightMatch = targetTexts.some(t => normalizedText.includes(t.toLowerCase()));
+
+      if (!mightMatch) continue;
+
       if (el.offsetParent === null) continue; // Skip invisible elements
       const text = el.innerText.trim().toLowerCase();
 
