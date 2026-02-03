@@ -1,13 +1,23 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
+let cachedClient: GoogleGenAI | null = null;
+let cachedApiKey: string | null = null;
+
 export const identifyCookieButton = async (htmlSnippet: string, apiKey: string) => {
   if (!apiKey) {
     console.error("Gemini API Key is missing.");
     throw new Error("API_KEY_MISSING");
   }
 
-  const ai = new GoogleGenAI({ apiKey });
+  let ai: GoogleGenAI;
+  if (cachedClient && cachedApiKey === apiKey) {
+    ai = cachedClient;
+  } else {
+    ai = new GoogleGenAI({ apiKey });
+    cachedClient = ai;
+    cachedApiKey = apiKey;
+  }
 
   try {
     const response = await ai.models.generateContent({
