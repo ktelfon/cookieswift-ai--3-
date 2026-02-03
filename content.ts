@@ -95,6 +95,7 @@ declare const chrome: any;
 
     // 2. Generic Text Search
     const targetTexts = ['Accept All', 'Allow All', 'Accept Cookies', 'I Agree', 'Accept', 'Alles akzeptieren'];
+    const targetSet = new Set(targetTexts.map(t => t.toLowerCase()));
     const candidates = document.querySelectorAll('button, a, [role="button"], input[type="button"], input[type="submit"], .btn, div[class*="button"]');
 
     for (const node of candidates) {
@@ -102,7 +103,7 @@ declare const chrome: any;
       if (el.offsetParent === null) continue; // Skip invisible elements
       const text = el.innerText.trim().toLowerCase();
 
-      if (targetTexts.some(t => text === t.toLowerCase())) {
+      if (targetSet.has(text)) {
         if (el.offsetParent === null) continue; // Skip invisible elements
         console.log(`CookieSwift: Found text-match button: "${el.innerText}". Clicking...`);
         el.click();
