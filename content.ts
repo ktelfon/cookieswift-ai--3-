@@ -99,6 +99,13 @@ declare const chrome: any;
 
     for (const node of candidates) {
       const el = node as HTMLElement;
+
+      // Optimization: Check textContent first to avoid unnecessary reflows from offsetParent
+      const rawText = (el.textContent || '').toLowerCase();
+      if (!targetTexts.some(t => rawText.includes(t.toLowerCase()))) {
+        continue;
+      }
+
       if (el.offsetParent === null) continue; // Skip invisible elements
       const text = el.innerText.trim().toLowerCase();
 
